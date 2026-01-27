@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Lock, FileText, Camera, LineChart, Map, Phone } from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { propertyData } from "@/lib/property-data";
 
@@ -86,12 +85,15 @@ export function FinalCTA() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Link href="/qualify">
-            <Button variant="luxury" size="xl" className="group">
-              <Lock className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-              Unlock Your Buyer&apos;s Dossier
-            </Button>
-          </Link>
+          <Button
+            variant="luxury"
+            size="xl"
+            className="group"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          >
+            <Lock className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+            Unlock Your Buyer&apos;s Dossier
+          </Button>
         </motion.div>
 
         {/* Trust Signal */}

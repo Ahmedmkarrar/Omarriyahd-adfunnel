@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Expand } from "lucide-react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Image from "next/image";
 import { propertyData } from "@/lib/property-data";
 
@@ -94,20 +93,12 @@ export function PhotoGallery() {
                     index === 0 ? "aspect-square" : "aspect-[4/3]"
                   } bg-luxury-charcoal`}
                 >
-                  {/* Placeholder gradient while images load */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-luxury-slate to-luxury-charcoal flex items-center justify-center">
-                    <span className="text-gray-600 text-sm">
-                      {photo.category}
-                    </span>
-                  </div>
-
-                  {/* Uncomment when actual images are available */}
-                  {/* <Image
+                  <Image
                     src={photo.src}
                     alt={photo.alt}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  /> */}
+                  />
 
                   {/* Hover overlay */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
@@ -187,25 +178,12 @@ export function PhotoGallery() {
               className="relative w-full h-full max-w-6xl max-h-[85vh] m-4"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Placeholder */}
-              <div className="w-full h-full bg-luxury-charcoal rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <p className="text-gray-400 text-lg mb-2">
-                    {filteredPhotos.find((p) => p.id === selectedPhoto)?.alt}
-                  </p>
-                  <p className="text-gray-600 text-sm">
-                    {filteredPhotos.find((p) => p.id === selectedPhoto)?.category}
-                  </p>
-                </div>
-              </div>
-
-              {/* Uncomment when actual images are available */}
-              {/* <Image
+              <Image
                 src={filteredPhotos.find((p) => p.id === selectedPhoto)?.src || ""}
                 alt={filteredPhotos.find((p) => p.id === selectedPhoto)?.alt || ""}
                 fill
                 className="object-contain rounded-lg"
-              /> */}
+              />
             </motion.div>
 
             {/* Photo counter */}
