@@ -192,12 +192,6 @@ Located just minutes from Lake Nacimiento and the world-famous Paso Robles wine 
     },
     {
       id: 11,
-      src: "/photos/garage.jpg",
-      alt: "Three-car garage with ADU potential",
-      category: "Exterior",
-    },
-    {
-      id: 12,
       src: "/photos/aerial.jpg",
       alt: "Aerial view of property and surroundings",
       category: "Views",
