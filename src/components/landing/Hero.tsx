@@ -42,6 +42,21 @@ export function Hero() {
 
     setIsSubmitting(true);
     try {
+      // Submit to Netlify Forms
+      const netlifyFormData = new FormData();
+      netlifyFormData.append("form-name", "lead-form");
+      netlifyFormData.append("firstName", formData.firstName);
+      netlifyFormData.append("lastName", formData.lastName);
+      netlifyFormData.append("email", formData.email);
+      netlifyFormData.append("phone", formData.phone);
+
+      await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams(netlifyFormData as unknown as Record<string, string>).toString(),
+      });
+
+      // Also submit to API for email notifications
       await fetch("/api/submit-lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,6 +76,7 @@ export function Hero() {
           submittedAt: new Date().toISOString(),
         }),
       });
+
       localStorage.setItem("leadEmail", formData.email);
       localStorage.setItem("leadFirstName", formData.firstName);
       router.push("/thank-you");
@@ -167,10 +183,20 @@ export function Hero() {
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form
+                name="lead-form"
+                method="POST"
+                data-netlify="true"
+                netlify-honeypot="bot-field"
+                onSubmit={handleSubmit}
+                className="space-y-4"
+              >
+                <input type="hidden" name="form-name" value="lead-form" />
+                <input type="hidden" name="bot-field" />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Input
+                      name="firstName"
                       placeholder="First Name"
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
@@ -179,6 +205,7 @@ export function Hero() {
                   </div>
                   <div>
                     <Input
+                      name="lastName"
                       placeholder="Last Name"
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
@@ -187,6 +214,7 @@ export function Hero() {
                   </div>
                 </div>
                 <Input
+                  name="email"
                   type="email"
                   placeholder="Email Address"
                   value={formData.email}
@@ -194,6 +222,7 @@ export function Hero() {
                   error={errors.email}
                 />
                 <Input
+                  name="phone"
                   type="tel"
                   placeholder="Phone Number"
                   value={formData.phone}
