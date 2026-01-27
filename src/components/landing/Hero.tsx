@@ -29,10 +29,11 @@ export function Hero() {
       newErrors.email = "Invalid email";
     }
     if (!formData.phone.trim()) newErrors.phone = "Required";
-    else if (!/^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/.test(formData.phone)) {
-      newErrors.phone = "Invalid phone";
+    else if (formData.phone.replace(/\D/g, "").length < 10) {
+      newErrors.phone = "Enter 10 digit phone";
     }
     setErrors(newErrors);
+    console.log("Validation errors:", newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -44,12 +45,19 @@ export function Hero() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    console.log("Form submitted, validating...");
 
+    if (!validateForm()) {
+      console.log("Validation failed");
+      return;
+    }
+
+    console.log("Validation passed, submitting...");
     setIsSubmitting(true);
+
     try {
       // Submit to Netlify Forms
-      await fetch("/", {
+      const response = await fetch("/", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: encode({
@@ -60,6 +68,8 @@ export function Hero() {
           phone: formData.phone,
         }),
       });
+
+      console.log("Netlify response:", response.status);
 
       // Also submit to API for email notifications
       try {
@@ -86,11 +96,13 @@ export function Hero() {
         // API call is optional, continue even if it fails
       }
 
+      console.log("Redirecting to thank-you...");
       localStorage.setItem("leadEmail", formData.email);
       localStorage.setItem("leadFirstName", formData.firstName);
       router.push("/thank-you");
     } catch (error) {
       console.error("Form submission error:", error);
+      // Still redirect on error
       localStorage.setItem("leadEmail", formData.email);
       localStorage.setItem("leadFirstName", formData.firstName);
       router.push("/thank-you");
