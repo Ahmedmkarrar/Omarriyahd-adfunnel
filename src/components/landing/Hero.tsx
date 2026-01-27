@@ -36,6 +36,12 @@ export function Hero() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const encode = (data: Record<string, string>) => {
+    return Object.keys(data)
+      .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
+      .join("&");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -43,45 +49,48 @@ export function Hero() {
     setIsSubmitting(true);
     try {
       // Submit to Netlify Forms
-      const netlifyFormData = new FormData();
-      netlifyFormData.append("form-name", "lead-form");
-      netlifyFormData.append("firstName", formData.firstName);
-      netlifyFormData.append("lastName", formData.lastName);
-      netlifyFormData.append("email", formData.email);
-      netlifyFormData.append("phone", formData.phone);
-
       await fetch("/", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams(netlifyFormData as unknown as Record<string, string>).toString(),
+        body: encode({
+          "form-name": "lead-form",
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+        }),
       });
 
       // Also submit to API for email notifications
-      await fetch("/api/submit-lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          buyerType: "primary",
-          timeline: "0-30",
-          budget: "1m-1.25m",
-          viewingTime: ["flexible"],
-          attendees: "solo",
-          hasAgent: "open",
-          interestedInShowing: true,
-          agreeToTerms: true,
-          leadScore: { total: 13, category: "hot", breakdown: { timeline: 5, buyerType: 3, budget: 5, showingInterest: 0 } },
-          propertyAddress: propertyData.fullAddress,
-          propertyPrice: propertyData.price,
-          submittedAt: new Date().toISOString(),
-        }),
-      });
+      try {
+        await fetch("/api/submit-lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...formData,
+            buyerType: "primary",
+            timeline: "0-30",
+            budget: "1m-1.25m",
+            viewingTime: ["flexible"],
+            attendees: "solo",
+            hasAgent: "open",
+            interestedInShowing: true,
+            agreeToTerms: true,
+            leadScore: { total: 13, category: "hot", breakdown: { timeline: 5, buyerType: 3, budget: 5, showingInterest: 0 } },
+            propertyAddress: propertyData.fullAddress,
+            propertyPrice: propertyData.price,
+            submittedAt: new Date().toISOString(),
+          }),
+        });
+      } catch {
+        // API call is optional, continue even if it fails
+      }
 
       localStorage.setItem("leadEmail", formData.email);
       localStorage.setItem("leadFirstName", formData.firstName);
       router.push("/thank-you");
     } catch (error) {
-      console.error(error);
+      console.error("Form submission error:", error);
       localStorage.setItem("leadEmail", formData.email);
       localStorage.setItem("leadFirstName", formData.firstName);
       router.push("/thank-you");
