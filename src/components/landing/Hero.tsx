@@ -209,46 +209,50 @@ export function Hero() {
                 method="POST"
                 data-netlify="true"
                 netlify-honeypot="bot-field"
-                onSubmit={handleSubmit}
                 className="space-y-4"
+                onSubmit={handleSubmit}
               >
                 <input type="hidden" name="form-name" value="lead-form" />
                 <input type="hidden" name="bot-field" />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Input
+                    <input
                       name="firstName"
                       placeholder="First Name"
+                      required
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                      error={errors.firstName}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500/50 transition-all"
                     />
                   </div>
                   <div>
-                    <Input
+                    <input
                       name="lastName"
                       placeholder="Last Name"
+                      required
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      error={errors.lastName}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500/50 transition-all"
                     />
                   </div>
                 </div>
-                <Input
+                <input
                   name="email"
                   type="email"
                   placeholder="Email Address"
+                  required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  error={errors.email}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500/50 transition-all"
                 />
-                <Input
+                <input
                   name="phone"
                   type="tel"
                   placeholder="Phone Number"
+                  required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  error={errors.phone}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500/50 transition-all"
                 />
 
                 <Button
