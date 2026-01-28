@@ -2,15 +2,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { Lock, ChevronDown, CheckCircle, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { propertyData } from "@/lib/property-data";
 
 export function Hero() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -37,78 +34,43 @@ export function Hero() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const encode = (data: Record<string, string>) => {
-    return Object.keys(data)
-      .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
-      .join("&");
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted, validating...");
 
     if (!validateForm()) {
-      console.log("Validation failed");
       return;
     }
 
-    console.log("Validation passed, submitting...");
     setIsSubmitting(true);
 
-    try {
-      // Submit to Netlify Forms
-      const response = await fetch("/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: encode({
-          "form-name": "lead-form",
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-        }),
-      });
+    // Store data in localStorage before redirect
+    localStorage.setItem("leadEmail", formData.email);
+    localStorage.setItem("leadFirstName", formData.firstName);
 
-      console.log("Netlify response:", response.status);
+    // Create a hidden form and submit it natively to bypass Next.js routing
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/thank-you";
+    form.setAttribute("data-netlify", "true");
 
-      // Also submit to API for email notifications
-      try {
-        await fetch("/api/submit-lead", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...formData,
-            buyerType: "primary",
-            timeline: "0-30",
-            budget: "1m-1.25m",
-            viewingTime: ["flexible"],
-            attendees: "solo",
-            hasAgent: "open",
-            interestedInShowing: true,
-            agreeToTerms: true,
-            leadScore: { total: 13, category: "hot", breakdown: { timeline: 5, buyerType: 3, budget: 5, showingInterest: 0 } },
-            propertyAddress: propertyData.fullAddress,
-            propertyPrice: propertyData.price,
-            submittedAt: new Date().toISOString(),
-          }),
-        });
-      } catch {
-        // API call is optional, continue even if it fails
-      }
+    const fields = {
+      "form-name": "lead-form",
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+    };
 
-      console.log("Redirecting to thank-you...");
-      localStorage.setItem("leadEmail", formData.email);
-      localStorage.setItem("leadFirstName", formData.firstName);
-      router.push("/thank-you");
-    } catch (error) {
-      console.error("Form submission error:", error);
-      // Still redirect on error
-      localStorage.setItem("leadEmail", formData.email);
-      localStorage.setItem("leadFirstName", formData.firstName);
-      router.push("/thank-you");
-    } finally {
-      setIsSubmitting(false);
-    }
+    Object.entries(fields).forEach(([name, value]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
   };
 
   return (
