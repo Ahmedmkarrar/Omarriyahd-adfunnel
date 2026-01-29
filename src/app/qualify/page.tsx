@@ -55,7 +55,6 @@ import {
   attendeeOptions,
   agentOptions,
 } from "@/lib/form-schema";
-import { supabase } from "@/lib/supabase";
 import { calculateLeadScore } from "@/lib/utils";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -157,28 +156,29 @@ export default function QualifyPage() {
     });
 
     try {
-      const { error } = await supabase.from("leads").insert({
-        first_name: finalData.firstName,
-        last_name: finalData.lastName,
-        email: finalData.email,
-        phone: finalData.phone,
-        buyer_type: finalData.buyerType,
-        timeline: finalData.timeline,
-        budget: finalData.budget,
-        viewing_time: finalData.viewingTime || [],
-        attendees: finalData.attendees,
-        has_agent: finalData.hasAgent,
-        interested_in_showing: finalData.interestedInShowing ?? true,
-        lead_score: leadScore.total,
-        lead_category: leadScore.category,
-        score_timeline: leadScore.breakdown.timeline,
-        score_buyer_type: leadScore.breakdown.buyerType,
-        score_budget: leadScore.breakdown.budget,
-        score_showing: leadScore.breakdown.showingInterest,
-        source: "qualify-form",
+      const response = await fetch("/__forms.html", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          "form-name": "lead-form",
+          firstName: finalData.firstName || "",
+          lastName: finalData.lastName || "",
+          email: finalData.email || "",
+          phone: finalData.phone || "",
+          buyerType: finalData.buyerType || "",
+          timeline: finalData.timeline || "",
+          budget: finalData.budget || "",
+          viewingTime: Array.isArray(finalData.viewingTime) ? finalData.viewingTime.join(", ") : "",
+          attendees: finalData.attendees || "",
+          hasAgent: finalData.hasAgent || "",
+          interestedInShowing: finalData.interestedInShowing ? "Yes" : "No",
+          leadScore: `${leadScore.total}/18`,
+          leadCategory: leadScore.category,
+          subject: `New ${leadScore.category.toUpperCase()} Lead - 9805 Steelhead Rd`,
+        }).toString(),
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error("Form submission failed");
 
       // Store in localStorage for thank you page
       localStorage.setItem("leadEmail", finalData.email || "");
