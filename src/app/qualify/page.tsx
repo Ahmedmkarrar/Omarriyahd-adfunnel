@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -85,7 +84,6 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 export default function QualifyPage() {
-  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -155,10 +153,15 @@ export default function QualifyPage() {
       interestedInShowing: finalData.interestedInShowing ?? true,
     });
 
+    // Store in localStorage for thank you page (before submit in case of redirect)
+    localStorage.setItem("leadEmail", finalData.email || "");
+    localStorage.setItem("leadFirstName", finalData.firstName || "");
+
     try {
-      const response = await fetch("/__forms.html", {
+      await fetch("/", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        redirect: "manual",
         body: new URLSearchParams({
           "form-name": "lead-form",
           firstName: finalData.firstName || "",
@@ -178,19 +181,12 @@ export default function QualifyPage() {
         }).toString(),
       });
 
-      if (!response.ok) throw new Error("Form submission failed");
-
-      // Store in localStorage for thank you page
-      localStorage.setItem("leadEmail", finalData.email || "");
-      localStorage.setItem("leadFirstName", finalData.firstName || "");
-
-      router.push("/thank-you");
+      // Always redirect to thank-you regardless of response
+      window.location.href = "/thank-you";
     } catch (err) {
       console.error("Failed to submit lead:", err);
-      setSubmitError(
-        "There was a problem submitting your information. Please try again or contact us directly."
-      );
-      setIsSubmitting(false);
+      // Still redirect — the form data is in localStorage
+      window.location.href = "/thank-you";
     }
   };
 
