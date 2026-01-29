@@ -72,13 +72,6 @@ export default function RootLayout({
       <body
         className={`${inter.className} bg-luxury-black text-white min-h-screen`}
       >
-        {/* Hidden form for Netlify Forms detection */}
-        <form name="lead-form" data-netlify="true" netlify-honeypot="bot-field" hidden>
-          <input type="text" name="firstName" />
-          <input type="text" name="lastName" />
-          <input type="email" name="email" />
-          <input type="tel" name="phone" />
-        </form>
         {children}
       </body>
     </html>

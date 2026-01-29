@@ -55,6 +55,7 @@ import {
   attendeeOptions,
   agentOptions,
 } from "@/lib/form-schema";
+import { supabase } from "@/lib/supabase";
 import { calculateLeadScore } from "@/lib/utils";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -139,48 +140,56 @@ export default function QualifyPage() {
     setCurrentStep(3);
   };
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const handleStep3Submit = async (data: Step3Data) => {
     setIsSubmitting(true);
+    setSubmitError(null);
     const finalData = { ...formData, ...data };
     setFormData(finalData);
 
     // Calculate lead score
     const leadScore = calculateLeadScore({
-      buyerType: finalData.buyerType || "",
-      timeline: finalData.timeline || "",
-      budget: finalData.budget || "",
-      interestedInShowing: finalData.interestedInShowing || false,
+      buyerType: finalData.buyerType!,
+      timeline: finalData.timeline!,
+      budget: finalData.budget!,
+      interestedInShowing: finalData.interestedInShowing ?? true,
     });
 
     try {
-      // Submit to API
-      const response = await fetch("/api/submit-lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...finalData,
-          leadScore,
-          propertyAddress: propertyData.fullAddress,
-          propertyPrice: propertyData.price,
-          submittedAt: new Date().toISOString(),
-        }),
+      const { error } = await supabase.from("leads").insert({
+        first_name: finalData.firstName,
+        last_name: finalData.lastName,
+        email: finalData.email,
+        phone: finalData.phone,
+        buyer_type: finalData.buyerType,
+        timeline: finalData.timeline,
+        budget: finalData.budget,
+        viewing_time: finalData.viewingTime || [],
+        attendees: finalData.attendees,
+        has_agent: finalData.hasAgent,
+        interested_in_showing: finalData.interestedInShowing ?? true,
+        lead_score: leadScore.total,
+        lead_category: leadScore.category,
+        score_timeline: leadScore.breakdown.timeline,
+        score_buyer_type: leadScore.breakdown.buyerType,
+        score_budget: leadScore.breakdown.budget,
+        score_showing: leadScore.breakdown.showingInterest,
+        source: "qualify-form",
       });
 
-      if (response.ok) {
-        // Store email in localStorage for thank you page
-        localStorage.setItem("leadEmail", finalData.email || "");
-        localStorage.setItem("leadFirstName", finalData.firstName || "");
-        router.push("/thank-you");
-      } else {
-        throw new Error("Failed to submit");
-      }
-    } catch (error) {
-      console.error("Submission error:", error);
-      // Still redirect to thank you page for demo purposes
+      if (error) throw error;
+
+      // Store in localStorage for thank you page
       localStorage.setItem("leadEmail", finalData.email || "");
       localStorage.setItem("leadFirstName", finalData.firstName || "");
+
       router.push("/thank-you");
-    } finally {
+    } catch (err) {
+      console.error("Failed to submit lead:", err);
+      setSubmitError(
+        "There was a problem submitting your information. Please try again or contact us directly."
+      );
       setIsSubmitting(false);
     }
   };
@@ -748,6 +757,12 @@ export default function QualifyPage() {
                     )}
                   />
                 </div>
+
+                {submitError && (
+                  <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+                    {submitError}
+                  </div>
+                )}
 
                 <div className="flex gap-4">
                   <Button
